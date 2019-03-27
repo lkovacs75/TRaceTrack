@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">TraceTrack</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="no_gps_enabled">No gps enabled!</string>
+    <string name="enab_gps">Enable GPS service?</string>
+    <string name="sorryGPS">The app can\'t work without GPS!</string>
+    <string name="waitForGPS">Waiting for GPS signal #8230</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+</resources>
