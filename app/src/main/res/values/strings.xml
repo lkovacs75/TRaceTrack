@@ -10,4 +10,8 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
 
+    <string name="addNewPopupText1">Add new text1</string>
+    <string name="addNewPopupText2">Add new text2</string>
+    <string name="addNewPopupText3">Add new text3</string>
+    <string name="addNewPopupText4">Add new text4</string>
 </resources>

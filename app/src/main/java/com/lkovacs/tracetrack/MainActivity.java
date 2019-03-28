@@ -8,19 +8,19 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public int pointCounter;
     public Polyline polyLine;
     private PolylineOptions polylineOptions = null;
+    public List<LatLng> points;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +57,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             new waitForGPSSignal().execute("my string parameter");
         }
 
-        pointCounter = 0;
         countView = findViewById(R.id.counterView);
         polylineOptions = new PolylineOptions()
                 .color(Color.RED)
@@ -71,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 gpsServices.getLocation();
                 oldLocation = gpsServices.loc;
                 newLocation = oldLocation;
+                points = polyLine.getPoints();
+                points.clear();
+                pointCounter = 0;
                 TimerTask t = new TimerTask() {
                     @Override
                     public void run() {
@@ -81,7 +84,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    List<LatLng> points = polyLine.getPoints();
                                     points.add(new LatLng(newLocation.getLatitude(), newLocation.getLongitude()));
                                     polyLine.setPoints(points);
                                     myMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(newLocation.getLatitude(), newLocation.getLongitude())));
@@ -109,21 +111,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        FloatingActionButton fab = findViewById(R.id.fab);
+        final FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        myMap.addMarker(new MarkerOptions()
-                                .position(new LatLng(gpsServices.loc.getLatitude(), gpsServices.loc.getLongitude()))
-                                .title("test")
-                                .snippet("test's snippet")
-                                .draggable(true)
-                                .icon(BitmapDescriptorFactory.defaultMarker()));
+                final PopupMenu popup = new PopupMenu(MainActivity.this, fab, Gravity.CENTER);
+                popup.getMenuInflater().inflate(R.menu.add_new_popupmenu, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()) {
+                            case R.id.menu1:
+                                // menu 1 selected
+                                return true;
+                            case R.id.menu2:
+                                // menu 2 selected
+                                popup.dismiss();
+                                return true;
+                            case R.id.menu3:
+                                // menu 3 selected
+                                popup.dismiss();
+                                return true;
+                            case R.id.menu4:
+                                // menu 4 selected
+                                popup.dismiss();
+                                return true;
+                            default:
+                                return false;
+                        }
                     }
                 });
+                popup.show();
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        myMap.addMarker(new MarkerOptions()
+//                                .position(new LatLng(gpsServices.loc.getLatitude(), gpsServices.loc.getLongitude()))
+//                                .title("test")
+//                                .snippet("test's snippet")
+//                                .draggable(true)
+//                                .icon(BitmapDescriptorFactory.defaultMarker()));
+//                    }
+//                });
             }
         });
     }
