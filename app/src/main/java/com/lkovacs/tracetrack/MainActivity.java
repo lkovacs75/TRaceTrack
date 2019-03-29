@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,13 +31,15 @@ import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     public Button start, stop;
-    public TextView countView;
+    public TextView coordView, avgSpeedView, distanceView, climbView, curSpeedView;
     public GPSServices gpsServices;
     public GoogleMap myMap;
     private ProgressDialog pDialog;
     public Location oldLocation = null, newLocation = null;
     public Timer timer = new Timer();
     public int pointCounter;
+    public int distance = 0, climb = 0, GPS_TIME_INTERVAL = 2000;
+    double avgSpeed = 0, curSpeed = 0;
     public Polyline polyLine;
     private PolylineOptions polylineOptions = null;
     public List<LatLng> points;
@@ -57,7 +60,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             new waitForGPSSignal().execute("my string parameter");
         }
 
-        countView = findViewById(R.id.counterView);
+        coordView = findViewById(R.id.counterView);
+        coordView.setText("Latitude: 0.00000\nLongitude: 0.00000");
+        avgSpeedView = findViewById(R.id.avgSpeed);
+        avgSpeedView.setText("Avg. avgSpeed: 0 km/h.");
+        distanceView = findViewById(R.id.distance);
+        distanceView.setText("Distance travelled: 0 m.");
+        climbView = findViewById(R.id.climb);
+        climbView.setText("Elevation change: 0 m.");
+        curSpeedView = findViewById(R.id.currSpeedView);
+        curSpeedView.setText("Curr.speed: 0 km/h.");
         polylineOptions = new PolylineOptions()
                 .color(Color.RED)
                 .width(8).geodesic(true);
@@ -71,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 gpsServices.getLocation();
                 oldLocation = gpsServices.loc;
                 newLocation = oldLocation;
+                distance = 0;
                 points = polyLine.getPoints();
                 points.clear();
                 pointCounter = 0;
@@ -80,16 +93,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         gpsServices.getLocation();
                         newLocation = gpsServices.loc;
                         pointCounter++;
+                        distance += newLocation.distanceTo(oldLocation);
+                        avgSpeed = ((float) distance / (pointCounter * GPS_TIME_INTERVAL)) * 3600;
+                        curSpeed = (newLocation.distanceTo(oldLocation) / GPS_TIME_INTERVAL) * 3600;
+                        Log.i("===============", "--------------------");
+                        Log.i("OldAlt ", String.valueOf(oldLocation.getAltitude()) + " newAlt: " + String.valueOf(newLocation.getAltitude()));
                         if (newLocation != oldLocation) {
+                            if (newLocation.getAltitude() > oldLocation.getAltitude()) {
+                                Log.i("Elev.change ", String.valueOf(newLocation.getAltitude() - oldLocation.getAltitude()));
+                                climb += newLocation.getAltitude() - oldLocation.getAltitude();
+                                Log.i("Total climb ", String.valueOf(climb));
+                            }
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     points.add(new LatLng(newLocation.getLatitude(), newLocation.getLongitude()));
                                     polyLine.setPoints(points);
                                     myMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(newLocation.getLatitude(), newLocation.getLongitude())));
-                                    countView.setText("PointCounter: " + String.valueOf(pointCounter) +
-                                            "\nLat: " + String.valueOf(newLocation.getLatitude()) +
-                                            "\nLng: " + String.valueOf(newLocation.getLongitude()));
+                                    avgSpeedView.setText("Avg. avgSpeed: " + String.format("%.1f", avgSpeed) + " km/h.");
+                                    curSpeedView.setText("Cur.speed: " + String.format("%.1f", curSpeed) + " km/h.");
+                                    distanceView.setText("Distance travelled: " + String.valueOf(distance) + " m.");
+                                    climbView.setText("Elevation change: " + String.valueOf(climb) + " m.");
+                                    coordView.setText("Latitude: " + String.format("%.5f", newLocation.getLatitude()) + "\nLongitude: " + String.format("%.5f", newLocation.getLongitude()));
                                 }
                             });
                             oldLocation = newLocation;
@@ -97,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 };
                 timer = new Timer();
-                timer.scheduleAtFixedRate(t, 0, 2000);
+                timer.scheduleAtFixedRate(t, 0, GPS_TIME_INTERVAL);
             }
         });
 
