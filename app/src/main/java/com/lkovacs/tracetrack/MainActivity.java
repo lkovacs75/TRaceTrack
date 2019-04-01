@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MainActivity.this);
                 notificationManager.notify(17, builder.build());
                 distance = 0;
+                climb = 0;
                 points = polyLine.getPoints();
                 points.clear();
                 pointCounter = 0;
